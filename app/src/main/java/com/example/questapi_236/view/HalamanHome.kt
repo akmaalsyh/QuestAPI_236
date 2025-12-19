@@ -3,6 +3,7 @@ package com.example.questapi_236.view
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -44,13 +46,17 @@ import com.example.questapi_236.viewmodel.provider.PenyediaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    // edit 1.1 : tambahkan parameter navigateToItemEntry
     navigateToItemEntry: () -> Unit,
-    // edit 2.4 : tambahkan parameter navigateToItemUpdate
     navigateToItemUpdate: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
+    // --- REVISI: Tambahkan LaunchedEffect ---
+    // Ini memicu pemanggilan ulang data dari API setiap kali HomeScreen dimuat ulang
+    LaunchedEffect(Unit) {
+        viewModel.loadSiswa()
+    }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -63,7 +69,6 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                // edit 1.2 : event onClick
                 onClick = navigateToItemEntry,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
@@ -79,7 +84,7 @@ fun HomeScreen(
             statusUiSiswa = viewModel.listSiswa,
             onSiswaClick = navigateToItemUpdate,
             retryAction = viewModel::loadSiswa,
-            modifier = modifier
+            modifier = Modifier // Gunakan Modifier kapital di sini
                 .padding(innerPadding)
                 .fillMaxSize()
         )
@@ -89,7 +94,6 @@ fun HomeScreen(
 @Composable
 fun HomeBody(
     statusUiSiswa: StatusUiSiswa,
-    // edit 2.3 tambahkan parameter onSiswaClick
     onSiswaClick: (Int) -> Unit,
     retryAction: () -> Unit,
     modifier: Modifier = Modifier
@@ -102,18 +106,19 @@ fun HomeBody(
             is StatusUiSiswa.Loading -> LoadingScreen()
             is StatusUiSiswa.Success -> {
                 if (statusUiSiswa.siswa.isEmpty()) {
-                    Text(text = "Tidak ada data siswa")
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "Tidak ada data siswa")
+                    }
                 } else {
                     DaftarSiswa(
                         itemSiswa = statusUiSiswa.siswa,
-                        // edit 2.5 : tambahkan event onSiswaClick
                         onSiswaClick = { onSiswaClick(it.id) }
                     )
                 }
             }
             is StatusUiSiswa.Error -> ErrorScreen(
                 retryAction,
-                modifier = modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
@@ -145,7 +150,6 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun DaftarSiswa(
     itemSiswa: List<DataSiswa>,
-    // edit 2.1 : tambahkan parameter onSiswaClick
     onSiswaClick: (DataSiswa) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -155,7 +159,6 @@ fun DaftarSiswa(
                 siswa = person,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.padding_small))
-                    // edit 2.2 jadikan itemsiswa menjadi clickable()
                     .clickable { onSiswaClick(person) }
             )
         }

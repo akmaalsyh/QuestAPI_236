@@ -5,9 +5,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.questapi_236.repositori.AplikasiDataSiswa
+import com.example.questapi_236.viewmodel.DetailViewModel // Tambahkan import ini
+import com.example.questapi_236.viewmodel.EditViewModel
 import com.example.questapi_236.viewmodel.EntryViewModel
 import com.example.questapi_236.viewmodel.HomeViewModel
 
+// Extension function untuk mempermudah akses ke Container
 fun CreationExtras.aplikasiDataSiswa(): AplikasiDataSiswa = (
         this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as AplikasiDataSiswa
         )
@@ -19,6 +22,13 @@ object PenyediaViewModel {
         }
         initializer {
             EntryViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
+        }
+        // Tambahkan initializer untuk DetailViewModel
+        initializer {
+            DetailViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
+        }
+        initializer {
+            EditViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
         }
     }
 }

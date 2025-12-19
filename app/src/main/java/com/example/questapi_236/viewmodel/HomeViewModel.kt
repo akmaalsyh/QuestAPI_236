@@ -18,6 +18,7 @@ sealed interface StatusUiSiswa {
 }
 
 class HomeViewModel(private val repositoryDataSiswa: RepositoryDataSiswa) : ViewModel() {
+    // State untuk menampung status UI dan data siswa
     var listSiswa: StatusUiSiswa by mutableStateOf(StatusUiSiswa.Loading)
         private set
 
@@ -25,14 +26,18 @@ class HomeViewModel(private val repositoryDataSiswa: RepositoryDataSiswa) : View
         loadSiswa()
     }
 
+    // Fungsi untuk mengambil data dari repositori
     fun loadSiswa() {
         viewModelScope.launch {
             listSiswa = StatusUiSiswa.Loading
             listSiswa = try {
+                // Berhasil mengambil data
                 StatusUiSiswa.Success(repositoryDataSiswa.getDataSiswa())
             } catch (e: IOException) {
+                // Kesalahan jaringan
                 StatusUiSiswa.Error
             } catch (e: HttpException) {
+                // Kesalahan respon server
                 StatusUiSiswa.Error
             }
         }

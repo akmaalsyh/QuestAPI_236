@@ -57,8 +57,15 @@ fun EntrySiswaScreen(
             onSiswaValueChange = viewModel::updateUiState,
             onSaveClick = {
                 coroutineScope.launch {
-                    viewModel.addSiswa()
-                    navigateBack()
+                    // REVISI: Tambahkan penanganan error di sini agar navigasi
+                    // hanya terjadi jika proses simpan ke XAMPP berhasil.
+                    try {
+                        viewModel.addSiswa()
+                        navigateBack() // Kembali ke Home setelah sukses
+                    } catch (e: Exception) {
+                        // Log error jika diperlukan
+                        println("Error saat simpan: ${e.message}")
+                    }
                 }
             },
             modifier = Modifier
