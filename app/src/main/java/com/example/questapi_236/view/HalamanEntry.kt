@@ -1,4 +1,4 @@
-package com.example.questapi_236.view
+package com.questapi_236.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,11 +24,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.questapi_236.R
-import com.example.questapi_236.modeldata.DetailSiswa
-import com.example.questapi_236.modeldata.UIStateSiswa
 import com.example.questapi_236.uicontroller.route.DestinasiEntry
-import com.example.questapi_236.viewmodel.EntryViewModel
-import com.example.questapi_236.viewmodel.provider.PenyediaViewModel
+import com.questapi_236.modeldata.DetailSiswa
+import com.questapi_236.modeldata.UIStateSiswa
+import com.questapi_236.viewmodel.EntryViewModel
+import com.questapi_236.viewmodel.provider.PenyediaViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,15 +57,8 @@ fun EntrySiswaScreen(
             onSiswaValueChange = viewModel::updateUiState,
             onSaveClick = {
                 coroutineScope.launch {
-                    // REVISI: Tambahkan penanganan error di sini agar navigasi
-                    // hanya terjadi jika proses simpan ke XAMPP berhasil.
-                    try {
-                        viewModel.addSiswa()
-                        navigateBack() // Kembali ke Home setelah sukses
-                    } catch (e: Exception) {
-                        // Log error jika diperlukan
-                        println("Error saat simpan: ${e.message}")
-                    }
+                    viewModel.addSiswa()
+                    navigateBack()
                 }
             },
             modifier = Modifier
@@ -134,22 +127,20 @@ fun FormTambahSiswa(
             value = detailSiswa.telpon,
             onValueChange = { onValueChange(detailSiswa.copy(telpon = it)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            label = { Text(text = stringResource(R.string.telpon)) },
+            label = { Text(stringResource(R.string.telpon)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             singleLine = true
         )
-
         if (enabled) {
             Text(
                 text = stringResource(R.string.required_field),
                 modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
             )
         }
-
         Divider(
             thickness = dimensionResource(R.dimen.padding_small),
-            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+            modifier = Modifier.padding(bottom = dimensionResource(R.dimen.padding_medium))
         )
     }
 }
