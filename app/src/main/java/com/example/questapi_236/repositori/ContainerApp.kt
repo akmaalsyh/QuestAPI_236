@@ -1,9 +1,11 @@
 package com.example.questapi_236.repositori
 
 import android.app.Application
-import com.example.questapi_236.apiservice.ServiceApiSiswa
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory // Tambahkan ini
-import kotlinx.serialization.json.Json // Tambahkan ini
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.questapi_236.apiservice.ServiceApiSiswa
+import com.questapi_236.repositori.JaringanRepositoryDataSiswa
+import com.questapi_236.repositori.RepositoryDataSiswa
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
