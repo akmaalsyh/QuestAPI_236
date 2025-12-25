@@ -1,10 +1,10 @@
-package com.example.questapi_236.view
+package com.questapi_236.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -37,27 +36,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.questapi_236.R
-import com.example.questapi_236.modeldata.DataSiswa
 import com.example.questapi_236.uicontroller.route.DestinasiHome
-import com.example.questapi_236.viewmodel.HomeViewModel
-import com.example.questapi_236.viewmodel.StatusUiSiswa
-import com.example.questapi_236.viewmodel.provider.PenyediaViewModel
+import com.questapi_236.modeldata.DataSiswa
+import com.questapi_236.viewmodel.HomeViewModel
+import com.questapi_236.viewmodel.StatusUiSiswa
+import com.questapi_236.viewmodel.provider.PenyediaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navigateToItemEntry: () -> Unit,
-    navigateToItemUpdate: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onDetailClick: (Int) -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
-    // --- REVISI: Tambahkan LaunchedEffect ---
-    // Ini memicu pemanggilan ulang data dari API setiap kali HomeScreen dimuat ulang
-    LaunchedEffect(Unit) {
-        viewModel.loadSiswa()
-    }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -80,47 +74,42 @@ fun HomeScreen(
             }
         },
     ) { innerPadding ->
-        HomeBody(
+        HomeStatus(
             statusUiSiswa = viewModel.listSiswa,
-            onSiswaClick = navigateToItemUpdate,
-            retryAction = viewModel::loadSiswa,
-            modifier = Modifier // Gunakan Modifier kapital di sini
-                .padding(innerPadding)
-                .fillMaxSize()
+            retryAction = { viewModel.loadSiswa() },
+            modifier = Modifier.padding(innerPadding),
+            onDetailClick = onDetailClick
         )
     }
 }
 
 @Composable
-fun HomeBody(
+fun HomeStatus(
     statusUiSiswa: StatusUiSiswa,
-    onSiswaClick: (Int) -> Unit,
     retryAction: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDetailClick: (Int) -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        when (statusUiSiswa) {
-            is StatusUiSiswa.Loading -> LoadingScreen()
-            is StatusUiSiswa.Success -> {
-                if (statusUiSiswa.siswa.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "Tidak ada data siswa")
-                    }
-                } else {
-                    DaftarSiswa(
-                        itemSiswa = statusUiSiswa.siswa,
-                        onSiswaClick = { onSiswaClick(it.id) }
-                    )
+    when (statusUiSiswa) {
+        is StatusUiSiswa.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+        is StatusUiSiswa.Success -> {
+            if (statusUiSiswa.siswa.isEmpty()) {
+                Column(
+                    modifier = modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Tidak ada data siswa")
                 }
+            } else {
+                ListSiswa(
+                    siswa = statusUiSiswa.siswa,
+                    modifier = modifier.fillMaxWidth(),
+                    onDetailClick = onDetailClick
+                )
             }
-            is StatusUiSiswa.Error -> ErrorScreen(
-                retryAction,
-                modifier = Modifier.fillMaxSize()
-            )
         }
+        is StatusUiSiswa.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
     }
 }
 
@@ -140,7 +129,11 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = stringResource(R.string.gagal), modifier = Modifier.padding(16.dp))
+        Image(
+            painter = painterResource(id = R.drawable.loading_img),
+            contentDescription = ""
+        )
+        Text(text = stringResource(R.string.loading), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction) {
             Text(stringResource(R.string.retry))
         }
@@ -148,25 +141,29 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DaftarSiswa(
-    itemSiswa: List<DataSiswa>,
-    onSiswaClick: (DataSiswa) -> Unit,
-    modifier: Modifier = Modifier
+fun ListSiswa(
+    siswa: List<DataSiswa>,
+    modifier: Modifier = Modifier,
+    onDetailClick: (Int) -> Unit
 ) {
-    LazyColumn(modifier = modifier) {
-        items(items = itemSiswa, key = { it.id }) { person ->
-            ItemSiswa(
-                siswa = person,
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(dimensionResource(id = R.dimen.padding_medium)),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+    ) {
+        items(siswa) { item ->
+            CardSiswa(
+                siswa = item,
                 modifier = Modifier
-                    .padding(dimensionResource(id = R.dimen.padding_small))
-                    .clickable { onSiswaClick(person) }
+                    .fillMaxWidth()
+                    .clickable { onDetailClick(item.id) }
             )
         }
     }
 }
 
 @Composable
-fun ItemSiswa(
+fun CardSiswa(
     siswa: DataSiswa,
     modifier: Modifier = Modifier
 ) {
@@ -175,11 +172,12 @@ fun ItemSiswa(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = siswa.nama,
