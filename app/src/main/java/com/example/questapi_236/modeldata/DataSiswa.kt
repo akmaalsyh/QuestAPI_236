@@ -1,13 +1,13 @@
-package com.example.questapi_236.modeldata
+package com.questapi_236.modeldata
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DataSiswa(
-    val id: Int,
-    val nama: String,
-    val alamat: String,
-    val telpon: String
+    val id : Int,
+    val nama : String,
+    val alamat : String,
+    val telpon : String
 )
 
 data class UIStateSiswa(
@@ -29,7 +29,7 @@ fun DetailSiswa.toDataSiswa(): DataSiswa = DataSiswa(
     telpon = telpon
 )
 
-fun DataSiswa.toUiStateSiswa(isEntryValid: Boolean = false): UIStateSiswa = UIStateSiswa(
+fun DataSiswa.toUIStateSiswa(isEntryValid: Boolean = false): UIStateSiswa = UIStateSiswa(
     detailSiswa = this.toDetailSiswa(),
     isEntryValid = isEntryValid
 )
