@@ -1,4 +1,4 @@
-package com.example.questapi_236.uicontroller
+package com.questapi_236.uicontroller
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,17 +11,14 @@ import androidx.navigation.navArgument
 import com.example.questapi_236.uicontroller.route.DestinasiDetail
 import com.example.questapi_236.uicontroller.route.DestinasiEntry
 import com.example.questapi_236.uicontroller.route.DestinasiHome
-import com.example.questapi_236.uicontroller.route.DestinasiUpdate
-import com.example.questapi_236.view.DetailSiswaScreen
-import com.example.questapi_236.view.EntrySiswaScreen
-import com.example.questapi_236.view.HomeScreen
-import com.example.questapi_236.view.UpdateSiswaScreen
+import com.questapi_236.uicontroller.route.DestinasiEdit
+import com.questapi_236.view.DetailSiswaScreen
+import com.questapi_236.view.EditSiswaScreen
+import com.questapi_236.view.EntrySiswaScreen
+import com.questapi_236.view.HomeScreen
 
 @Composable
-fun DataSiswaApp(
-    navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier
-) {
+fun DataSiswaApp(navController: NavHostController = rememberNavController(), modifier: Modifier = Modifier) {
     HostNavigasi(navController = navController)
 }
 
@@ -35,54 +32,48 @@ fun HostNavigasi(
         startDestination = DestinasiHome.route,
         modifier = modifier
     ) {
-        // Rute untuk Halaman Utama (Home)
+        // Layar Utama (Daftar Siswa)
         composable(DestinasiHome.route) {
             HomeScreen(
                 navigateToItemEntry = { navController.navigate(DestinasiEntry.route) },
-                navigateToItemUpdate = { id -> // Pastikan menerima ID
-                    // Hapus tanda komentar // di bawah ini
+                onDetailClick = { id ->
                     navController.navigate("${DestinasiDetail.route}/$id")
                 }
             )
         }
 
-        // Rute untuk Halaman Tambah Siswa (Entry)
+        // Layar Tambah Siswa
         composable(DestinasiEntry.route) {
             EntrySiswaScreen(
-                navigateBack = {
-                    navController.navigate(DestinasiHome.route) {
-                        // Menghapus tumpukan backstack agar kembali ke home dengan bersih
-                        popUpTo(DestinasiHome.route) { inclusive = true }
-                    }
-                }
+                navigateBack = { navController.navigate(DestinasiHome.route) }
             )
         }
 
-        // Di dalam HostNavigasi
+        // Layar Detail Siswa
         composable(
-            route = "${DestinasiDetail.route}/{id}",
-            arguments = listOf(navArgument("id") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            DestinasiDetail.routeWithArgs,
+            arguments = listOf(navArgument(DestinasiDetail.itemIdArg) {
+                type = NavType.IntType
+            })
+        ) {
             DetailSiswaScreen(
-                id = id,
-                navigateBack = { navController.popBackStack() },
-                // TAMBAHKAN BARIS INI:
-                onClickEdit = {
-                    // Navigasi ke halaman edit/update (sesuaikan rutenya)
-                    navController.navigate("${DestinasiUpdate.route}/$it")
-                }
+                navigateToEditItem = { id ->
+                    navController.navigate("${DestinasiEdit.route}/$id")
+                },
+                navigateBack = { navController.navigate(DestinasiHome.route) }
             )
         }
 
+        // Layar Edit Siswa
         composable(
-            route = "${DestinasiUpdate.route}/{id}",
-            arguments = listOf(navArgument("id") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("id") ?: 0
-            UpdateSiswaScreen(
-                id = id,
-                navigateBack = { navController.popBackStack() }
+            DestinasiEdit.routeWithArgs,
+            arguments = listOf(navArgument(DestinasiEdit.itemIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            EditSiswaScreen(
+                navigateBack = { navController.navigate(DestinasiHome.route) },
+                onNavigateUp = { navController.navigateUp() }
             )
         }
     }
