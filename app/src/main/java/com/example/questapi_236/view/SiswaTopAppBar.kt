@@ -1,4 +1,4 @@
-package com.example.questapi_236.view
+package com.questapi_236.view
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
