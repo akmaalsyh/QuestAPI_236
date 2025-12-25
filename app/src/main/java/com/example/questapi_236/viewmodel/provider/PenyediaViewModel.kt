@@ -1,16 +1,16 @@
-package com.example.questapi_236.viewmodel.provider
+package com.questapi_236.viewmodel.provider
 
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.questapi_236.repositori.AplikasiDataSiswa
-import com.example.questapi_236.viewmodel.DetailViewModel // Tambahkan import ini
-import com.example.questapi_236.viewmodel.EditViewModel
-import com.example.questapi_236.viewmodel.EntryViewModel
-import com.example.questapi_236.viewmodel.HomeViewModel
+import com.questapi_236.viewmodel.DetailViewModel
+import com.questapi_236.viewmodel.EditViewModel
+import com.questapi_236.viewmodel.EntryViewModel
+import com.questapi_236.viewmodel.HomeViewModel
 
-// Extension function untuk mempermudah akses ke Container
 fun CreationExtras.aplikasiDataSiswa(): AplikasiDataSiswa = (
         this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as AplikasiDataSiswa
         )
@@ -23,12 +23,17 @@ object PenyediaViewModel {
         initializer {
             EntryViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
         }
-        // Tambahkan initializer untuk DetailViewModel
         initializer {
-            DetailViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
+            DetailViewModel(
+                this.createSavedStateHandle(),
+                aplikasiDataSiswa().container.repositoryDataSiswa
+            )
         }
         initializer {
-            EditViewModel(aplikasiDataSiswa().container.repositoryDataSiswa)
+            EditViewModel(
+                this.createSavedStateHandle(),
+                aplikasiDataSiswa().container.repositoryDataSiswa
+            )
         }
     }
 }
