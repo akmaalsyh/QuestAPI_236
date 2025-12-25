@@ -1,57 +1,62 @@
-package com.example.questapi_236.viewmodel
+package com.questapi_236.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.questapi_236.modeldata.DetailSiswa
-import com.example.questapi_236.modeldata.UIStateSiswa
-import com.example.questapi_236.modeldata.toDataSiswa
-import com.example.questapi_236.modeldata.toDetailSiswa
-import com.example.questapi_236.repositori.RepositoryDataSiswa
+import com.example.questapi_236.uicontroller.route.DestinasiDetail
+import com.questapi_236.modeldata.DetailSiswa
+import com.questapi_236.modeldata.UIStateSiswa
+import com.questapi_236.modeldata.toDetailSiswa
+import com.questapi_236.modeldata.toDataSiswa
+import com.questapi_236.modeldata.toUIStateSiswa
+import com.questapi_236.repositori.RepositoryDataSiswa
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
 class EditViewModel(
+    savedStateHandle: SavedStateHandle,
     private val repositoryDataSiswa: RepositoryDataSiswa
 ) : ViewModel() {
-    var updateUiState by mutableStateOf(UIStateSiswa())
+
+    var uiStateSiswa by mutableStateOf(UIStateSiswa())
         private set
 
-    fun loadSiswa(id: Int) {
+    private val idSiswa: Int = checkNotNull(savedStateHandle[DestinasiDetail.itemIdArg])
+
+    init {
         viewModelScope.launch {
-            try {
-                val siswa = repositoryDataSiswa.getSiswaById(id)
-                updateUiState =
-                    UIStateSiswa(detailSiswa = siswa.toDetailSiswa(), isEntryValid = true)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            uiStateSiswa = repositoryDataSiswa.getSatuSiswa(idSiswa)
+                .toUIStateSiswa(true)
         }
     }
 
     fun updateUiState(detailSiswa: DetailSiswa) {
-        updateUiState = UIStateSiswa(
+        uiStateSiswa = UIStateSiswa(
             detailSiswa = detailSiswa,
             isEntryValid = validasiInput(detailSiswa)
         )
     }
 
-    private fun validasiInput(uiState: DetailSiswa): Boolean {
+    private fun validasiInput(uiState: DetailSiswa = uiStateSiswa.detailSiswa): Boolean {
         return with(uiState) {
             nama.isNotBlank() && alamat.isNotBlank() && telpon.isNotBlank()
         }
     }
 
-    // Di dalam UpdateViewModel
-    suspend fun updateSiswa(id: Int) {
-        if (validasiInput(updateUiState.detailSiswa)) {
-            try {
-                // Mengirimkan ID siswa dan data yang sudah diubah (Susan)
-                repositoryDataSiswa.updateSiswa(id, updateUiState.detailSiswa.toDataSiswa())
-                println("Update Berhasil di ViewModel")
-            } catch (e: Exception) {
-                println("Error Update: ${e.message}")
+    suspend fun editSatuSiswa() {
+        if (validasiInput(uiStateSiswa.detailSiswa)) {
+            val call: Response<Void> = repositoryDataSiswa.editSatuSiswa(
+                idSiswa,
+                uiStateSiswa.detailSiswa.toDataSiswa()
+            )
+
+            if (call.isSuccessful) {
+                println("Update Sukses : ${call.message()}")
+            } else {
+                println("Update Error : ${call.errorBody()}")
             }
         }
     }
