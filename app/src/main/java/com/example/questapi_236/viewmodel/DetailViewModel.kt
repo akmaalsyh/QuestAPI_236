@@ -1,48 +1,64 @@
-package com.example.questapi_236.viewmodel
+@file:OptIn(InternalSerializationApi::class)
 
+package com.questapi_236.viewmodel
+
+import android.annotation.SuppressLint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.questapi_236.modeldata.DataSiswa
-import com.example.questapi_236.repositori.RepositoryDataSiswa
+import com.example.questapi_236.uicontroller.route.DestinasiDetail
+import com.questapi_236.modeldata.DataSiswa
+import com.questapi_236.repositori.RepositoryDataSiswa
 import kotlinx.coroutines.launch
+import kotlinx.serialization.InternalSerializationApi
+import retrofit2.HttpException
+import retrofit2.Response
+import java.io.IOException
 
-sealed interface DetailUiState {
-    data class Success(val siswa: DataSiswa) : DetailUiState
-    object Error : DetailUiState
-    object Loading : DetailUiState
+sealed interface StatusUiDetail {
+    data class Success(val satusiswa: DataSiswa) : StatusUiDetail
+    object Error : StatusUiDetail
+    object Loading : StatusUiDetail
 }
 
-class DetailViewModel(private val repositoryDataSiswa: RepositoryDataSiswa) : ViewModel() {
-    var detailUiState: DetailUiState by mutableStateOf(DetailUiState.Loading)
+class DetailViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val repositoryDataSiswa: RepositoryDataSiswa
+) : ViewModel() {
+
+    private val idSiswa: Int = checkNotNull(savedStateHandle[DestinasiDetail.itemIdArg])
+
+    var statusUiDetail: StatusUiDetail by mutableStateOf(StatusUiDetail.Loading)
         private set
 
-    fun getSiswaById(id: Int) {
+    init {
+        getSatuSiswa()
+    }
+
+    fun getSatuSiswa() {
         viewModelScope.launch {
-            detailUiState = DetailUiState.Loading
-            try {
-                val response = repositoryDataSiswa.getSiswaById(id)
-                // Tambahkan validasi jika data yang datang null/kosong
-                if (response != null) {
-                    detailUiState = DetailUiState.Success(response)
-                } else {
-                    detailUiState = DetailUiState.Error
-                }
-            } catch (e: Exception) {
-                detailUiState = DetailUiState.Error
+            statusUiDetail = StatusUiDetail.Loading
+            statusUiDetail = try {
+                StatusUiDetail.Success(satusiswa = repositoryDataSiswa.getSatuSiswa(idSiswa))
+            } catch (e: IOException) {
+                StatusUiDetail.Error
+            } catch (e: HttpException) {
+                StatusUiDetail.Error
             }
         }
     }
 
-    fun deleteSiswa(id: Int) {
-        viewModelScope.launch {
-            try {
-                repositoryDataSiswa.deleteSiswa(id)
-            } catch (e: Exception) {
-                // Handle error
-            }
+    @SuppressLint("SuspiciousIndentation")
+    suspend fun hapusSatuSiswa() {
+        val resp: Response<Void> = repositoryDataSiswa.hapusSatuSiswa(idSiswa)
+
+        if (resp.isSuccessful) {
+            println("Sukses Hapus Data : ${resp.message()}")
+        } else {
+            println("Gagal Hapus Data : ${resp.errorBody()}")
         }
     }
 }
